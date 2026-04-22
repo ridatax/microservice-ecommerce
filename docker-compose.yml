@@ -1,0 +1,40 @@
+services:
+  # 1. El Servicio de Base de Datos
+  mongodb:
+    image: mongo:8.0.6
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - mongo_data:/data/db  # <--- ¡Aquí salvamos los datos!
+  inventory-db:
+    image: mysql:8.0.32
+    container_name: inventory-db
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=inventory-db
+      - MYSQL_ROOT_HOST=%
+    volumes:
+      - inventory_data:/var/lib/mysql
+  order-db:
+    image: postgres:16-alpine
+    container_name: order-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=order-db
+    volumes:
+      - order_data:/var/lib/postgresql/data
+
+volumes:
+  mongo_data:             # Declaramos el volumen persistente para product
+  inventory_data:         # Declaramos el volumen persistente para el inventory
+  order_data:             # Declaramos el volumen persistente para el order

@@ -1,6 +1,5 @@
 HELP.md
 .gradle
-.env
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -46,9 +45,9 @@ out/
 *.swo
 *.swn
 *.class
+*.jar
 *.war
 *.ear
 *.zip
 *.tar.gz
 *.7z
-
