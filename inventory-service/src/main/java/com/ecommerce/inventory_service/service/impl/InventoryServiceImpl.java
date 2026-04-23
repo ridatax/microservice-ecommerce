@@ -9,22 +9,34 @@ import com.ecommerce.inventory_service.repository.InventoryRepository;
 import com.ecommerce.inventory_service.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Service
+
 @RequiredArgsConstructor
 @Slf4j
+@RefreshScope
+@Service
 public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final InventoryMapper inventoryMapper;
 
+    @Value("${inventory.allow-backorders:false}")
+    private boolean allowBackOrder;
+
     @Override
     @Transactional(readOnly = true)
     public boolean isInStock(String sku, Integer quantity) {
+
+        if(allowBackOrder){
+            log.warn("Backorder Active - Allowing backorder for SKU: [{}]", sku );
+            return Boolean.TRUE;
+        }
         return inventoryRepository.findBySku(sku)
                 .map(inventory -> inventory.getQuantity() >= quantity)
                 .orElse(false);

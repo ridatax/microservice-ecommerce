@@ -5,31 +5,41 @@ import com.ecommerce.order_service.dto.OrderResponse;
 import com.ecommerce.order_service.exception.ResourceNotFoundException;
 import com.ecommerce.order_service.mapper.OrderMapper;
 import com.ecommerce.order_service.model.Order;
-import com.ecommerce.order_service.model.OrderLineItems;
 import com.ecommerce.order_service.repository.OrderRepository;
 import com.ecommerce.order_service.service.OrderService;
 import com.ecommerce.order_service.service.client.InventoryClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
-@Service
+
 @RequiredArgsConstructor
 @Slf4j
+@RefreshScope
+@Service
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final InventoryClient inventoryClient;
     private final OrderMapper orderMapper;
 
+    @Value("${orders.enabled:true}")
+    private boolean ordersEnabled;
 
     @Override
     @Transactional
     public OrderResponse placeOrder(OrderRequest orderRequest) {
+        if(!ordersEnabled){
+            log.warn("Orders are disabled. Cannot place order.");
+            throw new RuntimeException("Orders are disabled");
+        }
+
         log.info("Colocando nuevo pedido");
 
         Order order = orderMapper.toOrder(orderRequest);

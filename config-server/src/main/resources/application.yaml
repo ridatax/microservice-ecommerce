@@ -1,3 +1,15 @@
 spring:
   application:
     name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${GITHUB_URI}
+          username: ${GITHUB_USERNAME}
+          password: ${GITHUB_TOKEN}
+          clone-on-start: true
+          default-label: main
+
+server:
+  port: 8888
