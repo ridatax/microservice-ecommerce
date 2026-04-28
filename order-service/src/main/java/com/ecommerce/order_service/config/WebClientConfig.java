@@ -11,14 +11,13 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 public class WebClientConfig {
 
     @Bean
-    public WebClient webClientBuilder(){
-        return WebClient.builder()
-                .baseUrl("http://localhost:8082")
-                .build();
+    public WebClient.Builder webClientBuilder(){
+        return WebClient.builder();
     }
 
     @Bean
-    public InventoryClient inventoryClient(WebClient webClient){
+    public InventoryClient inventoryClient(WebClient.Builder builder){
+        WebClient webClient = builder.baseUrl("http://INVENTORY-SERVICE").build();
         HttpServiceProxyFactory factory =
                 HttpServiceProxyFactory.builderFor(WebClientAdapter.create(webClient)).build();
 

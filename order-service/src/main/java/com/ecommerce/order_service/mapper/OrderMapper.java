@@ -12,9 +12,12 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface OrderMapper {
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "orderNumber", ignore = true)
     @Mapping(source = "orderLineItemsList", target = "orderLineItemsList")
     Order toOrder(OrderRequest orderRequest);
 
+    @Mapping(target = "id", ignore = true)
     OrderLineItems toOrderLineItems(OrderLineItemsRequest orderLineItemsRequest);
 
     @Mapping(source = "orderLineItemsList", target = "orderLineItemsList")

@@ -34,7 +34,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponse placeOrder(OrderRequest orderRequest) {
+    public OrderResponse placeOrder(OrderRequest orderRequest, String userId) {
         if(!ordersEnabled){
             log.warn("Orders are disabled. Cannot place order.");
             throw new RuntimeException("Orders are disabled");
@@ -43,6 +43,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("Colocando nuevo pedido");
 
         Order order = orderMapper.toOrder(orderRequest);
+        order.setUserId(userId);
 
         for(var item : order.getOrderLineItemsList()){
             String sku = item.getSku();
@@ -66,6 +67,22 @@ public class OrderServiceImpl implements OrderService {
         log.info("Orden guardada con éxito. ID: {}", savedOrder.getId());
 
         return orderMapper.toOrderResponse(savedOrder);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getOrders(String userId, boolean isAdmin) {
+        List<Order> orders;
+
+        if(isAdmin){
+            orders = orderRepository.findAll();
+        }else{
+            orders = orderRepository.findByUserId(userId);
+        }
+
+        return orders.stream()
+                .map(orderMapper::toOrderResponse)
+                .toList();
     }
 
     @Override
