@@ -8,15 +8,17 @@ import com.ecommerce.order_service.model.Order;
 import com.ecommerce.order_service.repository.OrderRepository;
 import com.ecommerce.order_service.service.OrderService;
 import com.ecommerce.order_service.service.client.InventoryClient;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.UUID;
 
 
 @RequiredArgsConstructor
@@ -32,10 +34,20 @@ public class OrderServiceImpl implements OrderService {
     @Value("${orders.enabled:true}")
     private boolean ordersEnabled;
 
+    public OrderResponse fallbackPlaceOrder(OrderRequest orderRequest, String userId, Throwable throwable) {
+
+        log.warn("Fallback activado para placeOrder. Causa: [{}]", throwable.getMessage());
+        throw new RuntimeException("No se pudo procesar la orden: " + throwable.getMessage());
+
+    }
+
     @Override
     @Transactional
+    @CircuitBreaker(name = "inventory", fallbackMethod = "fallbackPlaceOrder")
+    @Retry(name = "inventory")
     public OrderResponse placeOrder(OrderRequest orderRequest, String userId) {
-        if(!ordersEnabled){
+
+        if (!ordersEnabled) {
             log.warn("Orders are disabled. Cannot place order.");
             throw new RuntimeException("Orders are disabled");
         }
@@ -45,7 +57,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderMapper.toOrder(orderRequest);
         order.setUserId(userId);
 
-        for(var item : order.getOrderLineItemsList()){
+        for (var item : order.getOrderLineItemsList()) {
             String sku = item.getSku();
             Integer quantity = item.getQuantity();
 
@@ -67,6 +79,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("Orden guardada con éxito. ID: {}", savedOrder.getId());
 
         return orderMapper.toOrderResponse(savedOrder);
+
     }
 
     @Override
@@ -74,9 +87,9 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderResponse> getOrders(String userId, boolean isAdmin) {
         List<Order> orders;
 
-        if(isAdmin){
+        if (isAdmin) {
             orders = orderRepository.findAll();
-        }else{
+        } else {
             orders = orderRepository.findByUserId(userId);
         }
 

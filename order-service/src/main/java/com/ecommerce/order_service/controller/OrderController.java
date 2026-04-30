@@ -23,7 +23,7 @@ public class OrderController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public OrderResponse placeOrder(@Valid @RequestBody OrderRequest orderRequest,
-                                    @AuthenticationPrincipal Jwt jwt
+                                                       @AuthenticationPrincipal Jwt jwt
     ){
         return orderService.placeOrder(orderRequest, jwt.getSubject());
     }
@@ -43,12 +43,6 @@ public class OrderController {
         }
 
         return orderService.getOrders(userId, isAdmin);
-    }
-
-    @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public List<OrderResponse> getAllOrders() {
-        return orderService.getAllOrders();
     }
 
     @GetMapping("/{id}")
