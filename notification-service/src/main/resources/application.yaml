@@ -1,6 +1,5 @@
 spring:
   application:
     name: notification-service
-  threads:
-    virtual:
-      enabled: true
+  config:
+    import: "optional:configserver:http://localhost:8888"
